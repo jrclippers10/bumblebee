@@ -1,12 +1,16 @@
 package main
 
 import (
+    "sync"
     "time"
 )
 
-var bitfinex Bitfinex
-var bitstamp Bitstamp
-var kraken Kraken
+var (
+  bitfinex Bitfinex
+  bitstamp Bitstamp
+  kraken Kraken
+  sofChan chan Sof
+)
 
 func init() {
   bitfinex = Bitfinex{
@@ -30,12 +34,25 @@ func init() {
       },
     },
   }
+  sofChan = make(chan Sof)
 }
 
 func getAllExchanges() {
-    bitfinex.run()
-    bitstamp.run()
-    kraken.run()
+    var wg sync.WaitGroup
+    wg.Add(3)
+    go func() {
+        defer wg.Done()
+        sofChan <- bitfinex.run()
+    }()
+    go func() {
+        defer wg.Done()
+        sofChan <- bitstamp.run()
+    }()
+    go func() {
+        defer wg.Done()
+        sofChan <- kraken.run()
+    }()
+    wg.Wait()
 }
 
 func StartCollectors() {

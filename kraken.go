@@ -33,6 +33,7 @@ func (c Kraken) newOrderBook(b []byte) (o KrakenOrderBook, err error) {
 
 func (b *KrakenOrderBook) toSof() (s Sof) {
   s.Timestamp = time.Now()
+  // This line will be a problem when adding more currency pairs
   r := b.Result["XXBTZUSD"]
   s.Bids = make([]SofUnit, len(r.Bids))
   s.Asks = make([]SofUnit, len(r.Asks))
@@ -47,12 +48,13 @@ func (b *KrakenOrderBook) toSof() (s Sof) {
   return
 }
 
-func (c Kraken) run() {
+func (c Kraken) run() (s Sof) {
   b, err := c.getBTCUSDOrderBook()
   if err != nil {
     log.Fatal(err)
   }
   o, err := c.newOrderBook(b)
-  s := o.toSof()
+  s = o.toSof()
   log.Println(s)
+  return
 }

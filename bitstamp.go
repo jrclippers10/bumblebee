@@ -40,12 +40,13 @@ func (c Bitstamp) newOrderBook(b []byte) (o BitstampOrderBook, err error) {
   return o, err
 }
 
-func (c Bitstamp) run() {
+func (c Bitstamp) run() (s Sof) {
   b, err := c.getBTCUSDOrderBook()
   if err != nil {
     log.Fatal(err)
   }
   o, err := c.newOrderBook(b)
-  s := o.toSof()
+  s = o.toSof()
   log.Println(s)
+  return
 }

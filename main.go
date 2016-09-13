@@ -14,5 +14,3 @@ func main() {
   StartCollectors()
   StartServer()
 }
-
-
