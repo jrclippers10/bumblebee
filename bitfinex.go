@@ -7,12 +7,8 @@ import (
     "time"
 )
 
-var bitfinexURLs map[string]string
-
-func init() {
-  bitfinexURLs = map[string]string{
-    "BTC" : "https://api.bitfinex.com/v1/book/BTCUSD",
-  }
+type Bitfinex struct{
+  Client
 }
 
 type BitfinexOrderUnit struct{
@@ -24,6 +20,14 @@ type BitfinexOrderUnit struct{
 type BitfinexOrderBook struct{
   Bids []BitfinexOrderUnit
   Asks []BitfinexOrderUnit
+}
+
+func (c Bitfinex) newOrderBook(b []byte) (o BitfinexOrderBook, err error) {
+  err = json.Unmarshal(b, &o)
+  if err != nil {
+    log.Println("Error Unmarshaling to JSON", err)
+  }
+  return o, err
 }
 
 func (b *BitfinexOrderBook) toSof() (s Sof) {
@@ -41,20 +45,12 @@ func (b *BitfinexOrderBook) toSof() (s Sof) {
   return
 }
 
-func newBitfinexOrderBook(b []byte) (o BitfinexOrderBook, err error) {
-  err = json.Unmarshal(b, &o)
-  if err != nil {
-    log.Println("Error Unmarshaling to JSON", err)
-  }
-  return o, err
-}
-
-func bitfinex() {
-  b, err := getURL(bitfinexURLs["BTC"])
+func (c Bitfinex) run() {
+  b, err := c.getBTCUSDOrderBook()
   if err != nil {
     log.Fatal(err)
   }
-  o, err := newBitfinexOrderBook(b)
+  o, err := c.newOrderBook(b)
   s := o.toSof()
   log.Println(s)
 }

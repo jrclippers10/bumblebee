@@ -6,12 +6,9 @@ import (
     "strconv"
     "time"
 )
-var KrakenURLs map[string]string
 
-func init() {
-  KrakenURLs = map[string]string{
-    "BTC" : "https://api.kraken.com/0/public/Depth?pair=XXBTZUSD",
-  }
+type Kraken struct{
+  Client
 }
 
 type KrakenError struct{}
@@ -24,6 +21,14 @@ type KrakenResult struct{
 type KrakenOrderBook struct{
   Error []KrakenError
   Result map[string]KrakenResult
+}
+
+func (c Kraken) newOrderBook(b []byte) (o KrakenOrderBook, err error) {
+  err = json.Unmarshal(b, &o)
+  if err != nil {
+    log.Println("Error Unmarshaling to JSON", err)
+  }
+  return o, err
 }
 
 func (b *KrakenOrderBook) toSof() (s Sof) {
@@ -42,20 +47,12 @@ func (b *KrakenOrderBook) toSof() (s Sof) {
   return
 }
 
-func newKrakenOrderBook(b []byte) (o KrakenOrderBook, err error) {
-  err = json.Unmarshal(b, &o)
-  if err != nil {
-    log.Println("Error Unmarshaling to JSON", err)
-  }
-  return o, err
-}
-
-func kraken() {
-  b, err := getURL(KrakenURLs["BTC"])
+func (c Kraken) run() {
+  b, err := c.getBTCUSDOrderBook()
   if err != nil {
     log.Fatal(err)
   }
-  o, err := newKrakenOrderBook(b)
+  o, err := c.newOrderBook(b)
   s := o.toSof()
   log.Println(s)
 }

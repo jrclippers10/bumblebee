@@ -7,12 +7,8 @@ import (
     "time"
 )
 
-var BitstampURLs map[string]string
-
-func init() {
-  BitstampURLs = map[string]string{
-    "BTC" : "https://www.bitstamp.net/api/order_book/",
-  }
+type Bitstamp struct{
+  Client
 }
 
 type BitstampOrderBook struct{
@@ -36,7 +32,7 @@ func (b *BitstampOrderBook) toSof() (s Sof) {
   return
 }
 
-func newBitstampOrderBook(b []byte) (o BitstampOrderBook, err error) {
+func (c Bitstamp) newOrderBook(b []byte) (o BitstampOrderBook, err error) {
   err = json.Unmarshal(b, &o)
   if err != nil {
     log.Println("Error Unmarshaling to JSON", err)
@@ -44,12 +40,12 @@ func newBitstampOrderBook(b []byte) (o BitstampOrderBook, err error) {
   return o, err
 }
 
-func bitstamp() {
-  b, err := getURL(BitstampURLs["BTC"])
+func (c Bitstamp) run() {
+  b, err := c.getBTCUSDOrderBook()
   if err != nil {
     log.Fatal(err)
   }
-  o, err := newBitstampOrderBook(b)
+  o, err := c.newOrderBook(b)
   s := o.toSof()
   log.Println(s)
 }
